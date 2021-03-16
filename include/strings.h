@@ -316,6 +316,17 @@ extern const u8 gText_Sound[];
 extern const u8 gText_Frame[];
 extern const u8 gText_OptionMenuCancel[];
 extern const u8 gText_ButtonMode[];
+extern const u8 gText_SoundQuality[];
+extern const u8 gText_SoundQuality10512[];
+extern const u8 gText_SoundQuality13379[];
+extern const u8 gText_SoundQuality15768[];
+extern const u8 gText_SoundQuality18157[];
+extern const u8 gText_SoundQuality21024[];
+extern const u8 gText_SoundQuality26758[];
+extern const u8 gText_SoundQuality31536[];
+extern const u8 gText_SoundQuality36314[];
+extern const u8 gText_SoundQuality40137[];
+extern const u8 gText_SoundQuality42048[];
 
 extern const u8 gText_MaleSymbol[];
 extern const u8 gText_FemaleSymbol[];

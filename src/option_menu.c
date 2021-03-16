@@ -15,6 +15,9 @@
 #include "strings.h"
 #include "gba/m4a_internal.h"
 #include "constants/rgb.h"
+#include "string_util.h"
+
+#define SOUND_QUALITY_RATES_COUNT 10
 
 // Task data
 enum
@@ -26,6 +29,7 @@ enum
     TD_SOUND,
     TD_BUTTONMODE,
     TD_FRAMETYPE,
+    TD_SOUNDQUALITY,
 };
 
 // Menu items
@@ -37,6 +41,7 @@ enum
     MENUITEM_SOUND,
     MENUITEM_BUTTONMODE,
     MENUITEM_FRAMETYPE,
+    MENUITEM_SOUNDQUALITY,
     MENUITEM_CANCEL,
     MENUITEM_COUNT,
 };
@@ -54,6 +59,7 @@ enum
 #define YPOS_SOUND        (MENUITEM_SOUND * 16)
 #define YPOS_BUTTONMODE   (MENUITEM_BUTTONMODE * 16)
 #define YPOS_FRAMETYPE    (MENUITEM_FRAMETYPE * 16)
+#define YPOS_SOUNDQUALITY (MENUITEM_SOUNDQUALITY * 16)
 
 // this file's functions
 static void Task_OptionMenuFadeIn(u8 taskId);
@@ -73,6 +79,8 @@ static u8   FrameType_ProcessInput(u8 selection);
 static void FrameType_DrawChoices(u8 selection);
 static u8   ButtonMode_ProcessInput(u8 selection);
 static void ButtonMode_DrawChoices(u8 selection);
+static u8   SoundQuality_ProcessInput(u8 selection);
+static void SoundQuality_DrawChoices(u8 selection);
 static void DrawTextOption(void);
 static void DrawOptionMenuTexts(void);
 static void sub_80BB154(void);
@@ -83,6 +91,19 @@ static const u16 sOptionMenuText_Pal[] = INCBIN_U16("graphics/misc/option_menu_t
 // note: this is only used in the Japanese release
 static const u8 sEqualSignGfx[] = INCBIN_U8("graphics/misc/option_menu_equals_sign.4bpp");
 
+static const u8 *const sOptionMenuSoundQualityRates[10] =
+{
+    gText_SoundQuality10512,
+    gText_SoundQuality13379,
+    gText_SoundQuality15768,
+    gText_SoundQuality18157,
+    gText_SoundQuality21024,
+    gText_SoundQuality26758,
+    gText_SoundQuality31536,
+    gText_SoundQuality36314,
+    gText_SoundQuality40137,
+    gText_SoundQuality42048,
+};
 static const u8 *const sOptionMenuItemsNames[MENUITEM_COUNT] =
 {
     [MENUITEM_TEXTSPEED]   = gText_TextSpeed,
@@ -91,6 +112,7 @@ static const u8 *const sOptionMenuItemsNames[MENUITEM_COUNT] =
     [MENUITEM_SOUND]       = gText_Sound,
     [MENUITEM_BUTTONMODE]  = gText_ButtonMode,
     [MENUITEM_FRAMETYPE]   = gText_Frame,
+    [MENUITEM_SOUNDQUALITY]= gText_SoundQuality,
     [MENUITEM_CANCEL]      = gText_OptionMenuCancel,
 };
 
@@ -242,6 +264,7 @@ void CB2_InitOptionMenu(void)
         gTasks[taskId].data[TD_SOUND] = gSaveBlock2Ptr->optionsSound;
         gTasks[taskId].data[TD_BUTTONMODE] = gSaveBlock2Ptr->optionsButtonMode;
         gTasks[taskId].data[TD_FRAMETYPE] = gSaveBlock2Ptr->optionsWindowFrameType;
+        gTasks[taskId].data[TD_SOUNDQUALITY] = gSaveBlock2Ptr->optionsSoundQuality;
 
         TextSpeed_DrawChoices(gTasks[taskId].data[TD_TEXTSPEED]);
         BattleScene_DrawChoices(gTasks[taskId].data[TD_BATTLESCENE]);
@@ -249,6 +272,7 @@ void CB2_InitOptionMenu(void)
         Sound_DrawChoices(gTasks[taskId].data[TD_SOUND]);
         ButtonMode_DrawChoices(gTasks[taskId].data[TD_BUTTONMODE]);
         FrameType_DrawChoices(gTasks[taskId].data[TD_FRAMETYPE]);
+        SoundQuality_DrawChoices(gTasks[taskId].data[TD_SOUNDQUALITY]);
         HighlightOptionMenuItem(gTasks[taskId].data[TD_MENUSELECTION]);
 
         CopyWindowToVram(WIN_OPTIONS, 3);
@@ -344,6 +368,13 @@ static void Task_OptionMenuProcessInput(u8 taskId)
             if (previousOption != gTasks[taskId].data[TD_FRAMETYPE])
                 FrameType_DrawChoices(gTasks[taskId].data[TD_FRAMETYPE]);
             break;
+        case MENUITEM_SOUNDQUALITY:
+            previousOption = gTasks[taskId].data[TD_SOUNDQUALITY];
+            gTasks[taskId].data[TD_SOUNDQUALITY] = SoundQuality_ProcessInput(gTasks[taskId].data[TD_SOUNDQUALITY]);
+            
+            if (previousOption != gTasks[taskId].data[TD_SOUNDQUALITY])
+                SoundQuality_DrawChoices(gTasks[taskId].data[TD_SOUNDQUALITY]);
+            break;
         default:
             return;
         }
@@ -364,6 +395,7 @@ static void Task_OptionMenuSave(u8 taskId)
     gSaveBlock2Ptr->optionsSound = gTasks[taskId].data[TD_SOUND];
     gSaveBlock2Ptr->optionsButtonMode = gTasks[taskId].data[TD_BUTTONMODE];
     gSaveBlock2Ptr->optionsWindowFrameType = gTasks[taskId].data[TD_FRAMETYPE];
+    gSaveBlock2Ptr->optionsSoundQuality = gTasks[taskId].data[TD_SOUNDQUALITY];
 
     BeginNormalPaletteFade(PALETTES_ALL, 0, 0, 0x10, RGB_BLACK);
     gTasks[taskId].func = Task_OptionMenuFadeOut;
@@ -621,6 +653,36 @@ static void ButtonMode_DrawChoices(u8 selection)
     DrawOptionMenuChoice(gText_ButtonTypeLR, xLR, YPOS_BUTTONMODE, styles[1]);
 
     DrawOptionMenuChoice(gText_ButtonTypeLEqualsA, GetStringRightAlignXOffset(1, gText_ButtonTypeLEqualsA, 198), YPOS_BUTTONMODE, styles[2]);
+}
+
+static u8 SoundQuality_ProcessInput(u8 selection)
+{
+    if (JOY_NEW(DPAD_RIGHT))
+    {
+        if (selection < SOUND_QUALITY_RATES_COUNT - 1)
+            selection++;
+        else
+            selection = 0;
+
+        SampleFreqSet(0x30000 + (0x10000 * selection)); // 10512Hz is a value of 0x30000; each value is 0x10000 more than the last
+        sArrowPressed = TRUE;
+    }
+    if (JOY_NEW(DPAD_LEFT))
+    {
+        if (selection != 0)
+            selection--;
+        else
+            selection = SOUND_QUALITY_RATES_COUNT - 1;
+        
+        SampleFreqSet(0x30000 + (0x10000 * selection));
+        sArrowPressed = TRUE;
+    }
+    return selection;
+}
+
+static void SoundQuality_DrawChoices(u8 selection)
+{
+    DrawOptionMenuChoice(sOptionMenuSoundQualityRates[selection], 104, YPOS_SOUNDQUALITY, 1);
 }
 
 static void DrawTextOption(void)

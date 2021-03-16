@@ -1,4 +1,5 @@
 #include <string.h>
+#include "global.h"
 #include "gba/m4a_internal.h"
 
 extern const u8 gCgb3Vol[];
@@ -76,7 +77,7 @@ void m4aSoundInit(void)
     SoundInit(&gSoundInfo);
     MPlayExtender(gCgbChans);
     m4aSoundMode(SOUND_MODE_DA_BIT_8
-               | SOUND_MODE_FREQ_13379
+               | (gSaveBlock2Ptr->optionsSoundQuality * 0x10000 + 0x30000)
                | (12 << SOUND_MODE_MASVOL_SHIFT)
                | (5 << SOUND_MODE_MAXCHN_SHIFT));
 
