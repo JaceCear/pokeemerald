@@ -219,7 +219,7 @@ static inline void GenerateAudio(struct SoundMixerState *mixer, struct MixerSour
     uf8 v = chan->envelopeVol * (mixer->masterVol + 1) / 16U;
     chan->envelopeVolR = chan->rightVol * v / 256U;
     chan->envelopeVolL = chan->leftVol * v / 256U;
-    
+
     s32 loopLen = 0;
     s8 *loopStart;
     if (chan->status & 0x10) {
