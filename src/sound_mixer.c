@@ -174,9 +174,8 @@ static inline bool32 TickEnvelope(struct MixerSource *chan, struct WaveData2 *wa
             break;
         case 3:
         {
-
-            unsigned newEnv = env + chan->attack;
-        attack:
+        attack: ;
+            u32 newEnv = env + chan->attack;
             if (newEnv > 0xFF) {
                 chan->envelopeVol = 0xFF;
                 --chan->status;
