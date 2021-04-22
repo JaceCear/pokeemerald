@@ -2,6 +2,7 @@
 #include "music_player.h"
 #include "sound_mixer.h"
 #include "mp2k_common.h"
+#include "gb_audio.h"
 
 #define VCOUNT_VBLANK 160
 #define TOTAL_SCANLINES 228
@@ -43,6 +44,7 @@ void RunMixerFrame(void) {
     
     //MixerRamFunc mixerRamFunc = ((MixerRamFunc)MixerCodeBuffer);
     SampleMixer(mixer, maxScanlines, samplesPerFrame, outBuffer, dmaCounter, MIXED_AUDIO_BUFFER_SIZE);
+    GbTest(outBuffer, mixer->sampleRate, samplesPerFrame);
 }
 
 
@@ -177,9 +179,8 @@ static inline bool32 TickEnvelope(struct MixerSource *chan, struct WaveData2 *wa
             break;
         case 3:
         {
-
+        attack:;
             unsigned newEnv = env + chan->attack;
-        attack:
             if (newEnv > 0xFF) {
                 chan->envelopeVol = 0xFF;
                 --chan->status;
@@ -233,6 +234,7 @@ static inline void GenerateAudio(struct SoundMixerState *mixer, struct MixerSour
     s8 *current = chan->current;
     signed envR = chan->envelopeVolR;
     signed envL = chan->envelopeVolL;
+
 #ifdef POKEMON_EXTENSIONS
     // TODO
     if (chan->type & 0x30) {
