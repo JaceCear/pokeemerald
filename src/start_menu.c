@@ -717,12 +717,12 @@ static bool8 StartMenuOptionCallback(void)
 
     return FALSE;
 }
-
+extern void HealPlayerParty(void);
 static bool8 StartMenuExitCallback(void)
 {
     RemoveExtraStartMenuWindows();
     HideStartMenu(); // Hide start menu
-
+    HealPlayerParty();
     return TRUE;
 }
 

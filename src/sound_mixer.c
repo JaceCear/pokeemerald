@@ -44,7 +44,7 @@ void RunMixerFrame(void) {
     
     //MixerRamFunc mixerRamFunc = ((MixerRamFunc)MixerCodeBuffer);
     SampleMixer(mixer, maxScanlines, samplesPerFrame, outBuffer, dmaCounter, MIXED_AUDIO_BUFFER_SIZE);
-    GbTest(outBuffer, mixer->sampleRate, samplesPerFrame);
+    MixGBToneChannels(outBuffer, mixer->sampleRate, samplesPerFrame);
 }
 
 
@@ -104,7 +104,7 @@ void SampleMixer(struct SoundMixerState *mixer, u32 scanlineLimit, u16 samplesPe
         
         if (TickEnvelope(chan, wav)) 
         {
-            GenerateAudio(mixer, chan, wav, outBuffer, samplesPerFrame, sampleRateReciprocal);
+            //GenerateAudio(mixer, chan, wav, outBuffer, samplesPerFrame, sampleRateReciprocal);
         }
     }
 returnEarly:

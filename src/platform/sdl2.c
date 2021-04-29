@@ -1455,111 +1455,94 @@ static void DrawSprites(uint16_t layers[4][DISPLAY_WIDTH], uint16_t vcount)
 
 static uint16_t *target1layer;
 
-#if 0
-static void ProcessBGBlending(uint16_t *layer, int bg)
+#if 1
+static void ProcessBGBlending(uint16_t *scanline, int bg)
 {
     unsigned int effect = (REG_BLDCNT >> 6) & 3;
-    unsigned int evy;
     unsigned int eva;
     unsigned int evb;
+    unsigned int evy;
     int i;
 
-    switch (effect)
+    if (effect)
     {
-    case 0:  // none
-        break;
-    case 1:  // alpha blending
-        if (REG_BLDCNT & (1 << bg))  // BG is in first target
-        {
-            eva = REG_BLDALPHA & 0x1F;
-            for (i = 0; i < DISPLAY_WIDTH * DISPLAY_HEIGHT; i++)
-            {
-                unsigned int r = (layer[i] >> 0) & 0xFF;
-                unsigned int g = (layer[i] >> 8) & 0xFF;
-                unsigned int b = (layer[i] >> 16) & 0xFF;
-                unsigned int a = (layer[i] >> 24) & 0xFF;
+        eva = REG_BLDALPHA & 0x1F;
+        evb = (REG_BLDALPHA >> 8) & 0x1F;
+        evy = REG_BLDY & 0x1F;
 
-                r = r * eva / 31;
-                g = g * eva / 31;
-                b = b * eva / 31;
-                if (r > 255)
-                    r = 255;
-                if (g > 255)
-                    g = 255;
-                if (b > 255)
-                    b = 255;
-                layer[i] = r | (g << 8) | (b << 16) | (a << 24);
-            }
-            target1layer = layer;
-        }
-        if (REG_BLDCNT & (1 << (8 + bg)))  // BG is in second target
-        {
-            evb = (REG_BLDALPHA >> 8) & 0x1F;
-            for (i = 0; i < DISPLAY_WIDTH * DISPLAY_HEIGHT; i++)
-            {
-                unsigned int r = (layer[i] >> 0) & 0xFF;
-                unsigned int g = (layer[i] >> 8) & 0xFF;
-                unsigned int b = (layer[i] >> 16) & 0xFF;
-                unsigned int a = (layer[i] >> 24) & 0xFF;
+        eva = (eva > 16) ? 16 : eva;
+        evb = (evb > 16) ? 16 : evb;
+        evy = (evy > 16) ? 16 : evy;
 
-                r = r * evb / 31;
-                g = g * evb / 31;
-                b = b * evb / 31;
-                if (r > 255)
-                    r = 255;
-                if (g > 255)
-                    g = 255;
-                if (b > 255)
-                    b = 255;
-                layer[i] = r | (g << 8) | (b << 16) | (a << 24);
-            }
-        }
-        break;
-    case 2:  // brightness increase
-    #if 0
-        if (REG_BLDCNT & (1 << bg))
+        for (i = 0; i < DISPLAY_WIDTH; i++)
         {
-            evy = REG_BLDY & 0x1F;
-            //evy <<= 3;  // we are working with 8-bit instead of 5-bit
-            for (i = 0; i < DISPLAY_WIDTH * DISPLAY_HEIGHT; i++)
-            {
-                unsigned int r = (layer[i] >> 0) & 0xFF;
-                unsigned int g = (layer[i] >> 8) & 0xFF;
-                unsigned int b = (layer[i] >> 16) & 0xFF;
-                unsigned int a = (layer[i] >> 24) & 0xFF;
+            uint16_t a = scanline[i] & 0x8000;
+            uint16_t r = (scanline[i] >> 0) & 0x1F;
+            uint16_t g = (scanline[i] >> 5) & 0x1F;
+            uint16_t b = (scanline[i] >> 10) & 0x1F;
+            uint16_t r1 = r;
+            uint16_t g1 = g;
+            uint16_t b1 = b;
+            uint16_t r2 = 31;
+            uint16_t g2 = 31;
+            uint16_t b2 = 31;
 
-                /*
-                r += ((31 << 3) - r) * evy;
-                g += ((31 << 3) - g) * evy;
-                b += ((31 << 3) - b) * evy;
-                if (r > 255)
-                    r = 255;
-                if (g > 255)
-                    g = 255;
-                if (b > 255)
-                    b = 255;
-                */
-                r >>= 3;
-                g >>= 3;
-                b >>= 3;
-                r += evy;
-                g += evy;
-                b += evy;
-                r <<= 3;
-                g <<= 3;
-                b <<= 3;
-                if (r > 255)
-                    r = 255;
-                if (g > 255)
-                    g = 255;
-                if (b > 255)
-                    b = 255;
-                layer[i] = r | (g << 8) | (b << 16) | (a << 24);
+            switch (effect)
+            {
+            case 0:  // none
+                break;
+
+            case 1:  // alpha blending
+#if 0 // (JTG): Some logic needs to be changed for this to work properly, but I don't know what
+                if (REG_BLDCNT & (1 << bg) && a)  // BG is in first target
+                {
+                    r = r * eva / 16;
+                    g = g * eva / 16;
+                    b = b * eva / 16;
+                    target1layer = scanline;
+                }
+                if (REG_BLDCNT & (1 << (8 + bg)) && a)  // BG is in second target
+                {
+                    r = r * evb / 16;
+                    g = g * evb / 16;
+                    b = b * evb / 16;
+                }
+
+                //r = (r1 + r2);
+                //g = (g1 + g2);
+                //b = (b1 + b2);
+#endif
+                break;
+
+            case 2:  // brightness increase
+                if (REG_BLDCNT & (1 << bg))
+                {
+                    r += (31 - r) * evy / 16;
+                    g += (31 - g) * evy / 16;
+                    b += (31 - b) * evy / 16;
+                }
+                break;
+
+            case 3:  // brightness decrease
+                if (REG_BLDCNT & (1 << bg))
+                {
+                    r -= r * evy / 16;
+                    g -= g * evy / 16;
+                    b -= b * evy / 16;
+                }
+                break;
+                // TODO: support the rest
             }
+
+            r = (r < 0) ? 0 : r;
+            g = (g < 0) ? 0 : g;
+            b = (b < 0) ? 0 : b;
+
+            r = (r > 31) ? 31 : r;
+            g = (g > 31) ? 31 : g;
+            b = (b > 31) ? 31 : b;
+            scanline[i] = r | (g << 5) | (b << 10) | a;
         }
-    #endif
-        break;
-    // TODO: support the rest
     }
 }
 #endif
@@ -1616,7 +1599,7 @@ static void DrawScanline(uint16_t *pixels, uint16_t vcount)
                 unsigned int priority = bgcnts[bgnum] & 3;
 
                 RenderBGScanline(bgnum, bgcnts[bgnum], bghoffs, bgvoffs, vcount, layers[priority]);
-                //ProcessBGBlending(layers[priority], bgnum);
+                ProcessBGBlending(layers[priority], bgnum);
             }
         }
         break;
@@ -1628,7 +1611,7 @@ static void DrawScanline(uint16_t *pixels, uint16_t vcount)
             unsigned int priority = bgcnts[bgnum] & 3;
 
             RenderRotScaleBGScanline(bgnum, bgcnts[bgnum], REG_BG2X, REG_BG2Y, vcount, layers[priority]);
-            //ProcessBGBlending(layers[priority], bgnum);
+            ProcessBGBlending(layers[priority], bgnum);
         }
         // BG0 and BG1 are text mode
         for (bgnum = 1; bgnum >= 0; bgnum--)
@@ -1640,7 +1623,7 @@ static void DrawScanline(uint16_t *pixels, uint16_t vcount)
                 unsigned int priority = bgcnts[bgnum] & 3;
 
                 RenderBGScanline(bgnum, bgcnts[bgnum], bghoffs, bgvoffs, vcount, layers[priority]);
-                //ProcessBGBlending(layers[priority], bgnum);
+                ProcessBGBlending(layers[priority], bgnum);
             }
         }
         break;
@@ -1672,7 +1655,7 @@ static void DrawScanline(uint16_t *pixels, uint16_t vcount)
                     unsigned int r = ((target1[j] >>  0) & 0x1F) * eva / 16 + ((target2[j] >>  0) & 0x1F) * evb / 16;
                     unsigned int g = ((target1[j] >>  5) & 0x1F) * eva / 16 + ((target2[j] >>  5) & 0x1F) * evb / 16;
                     unsigned int b = ((target1[j] >> 10) & 0x1F) * eva / 16 + ((target2[j] >> 10) & 0x1F) * evb / 16;
-                    unsigned int a = (target1[j] >> 15) & 1;
+                    unsigned int a = target1[j] & 0x8000;
                     
                     if (r > 31)
                         r = 31;
@@ -1681,7 +1664,7 @@ static void DrawScanline(uint16_t *pixels, uint16_t vcount)
                     if (b > 31)
                         b = 31;
 
-                    target2[j] = r | (g << 5) | (b << 10) | (a << 15);
+                    target2[j] = r | (g << 5) | (b << 10) | a;
                 }
             }
             i--;

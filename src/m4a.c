@@ -117,9 +117,13 @@ void m4aSoundMain(void)
     RunMixerFrame();
 #endif
 }
-
+#include "constants/songs.h"
 void m4aSongNumStart(u16 n)
 {
+#if 0
+    if(n != MUS_HEAL)
+        n = (n < 300) ? n : 0;
+#endif
     const struct MusicPlayer *mplayTable = gMPlayTable;
     const struct Song *songTable = gSongTable;
     const struct Song *song = &songTable[n];
@@ -676,7 +680,10 @@ void m4aMPlayStop(struct MusicPlayerInfo *mplayInfo)
 {
     s32 i;
     struct MusicPlayerTrack *track;
-
+#ifdef UBFIX
+    if (mplayInfo == NULL)
+        return;
+#endif
     if (mplayInfo->ident != ID_NUMBER)
         return;
 
