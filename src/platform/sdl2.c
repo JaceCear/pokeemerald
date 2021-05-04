@@ -141,7 +141,7 @@ int main(int argc, char **argv)
     SDL_AudioSpec want;
 
     SDL_memset(&want, 0, sizeof(want)); /* or SDL_zero(want) */
-    want.freq = 42048;
+    want.freq = 42060;
     want.format = AUDIO_S32;
     want.channels = 2;
     want.samples = 1024;
