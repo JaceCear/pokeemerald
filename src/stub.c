@@ -205,7 +205,6 @@ STUB_FUNC(void ply_xswee(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTr
 STUB_FUNC(void ply_xcmd_0C(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track))
 STUB_FUNC(void ply_xcmd_0D(struct MusicPlayerInfo *mplayInfo, struct MusicPlayerTrack *track))
 STUB_FUNC(void DummyFunc(void))
-*/
 STUB_FUNC(struct MusicPlayerInfo *SetPokemonCryTone(struct ToneData *tone))
 STUB_FUNC(void SetPokemonCryVolume(u8 val))
 STUB_FUNC(void SetPokemonCryPanpot(s8 val))
@@ -217,6 +216,7 @@ STUB_FUNC(void SetPokemonCryChorus(s8 val))
 STUB_FUNC(void SetPokemonCryStereo(u32 val))
 STUB_FUNC(void SetPokemonCryPriority(u8 val))
 STUB_FUNC(void IsPokemonCryPlaying(struct MusicPlayerInfo *mplayInfo))
+*/
 STUB_FUNC(void MultiBootInit(struct MultiBootParam *mp))
 STUB_FUNC(int MultiBootMain(struct MultiBootParam *mp))
 STUB_FUNC(void MultiBootStartProbe(struct MultiBootParam *mp))
