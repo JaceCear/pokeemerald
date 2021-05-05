@@ -2,6 +2,7 @@
 #include "music_player.h"
 #include "sound_mixer.h"
 #include "mp2k_common.h"
+#include "gb_audio.h"
 
 #define VCOUNT_VBLANK 160
 #define TOTAL_SCANLINES 228
@@ -44,6 +45,7 @@ void RunMixerFrame(void) {
     
     //MixerRamFunc mixerRamFunc = ((MixerRamFunc)MixerCodeBuffer);
     SampleMixer(mixer, maxScanlines, samplesPerFrame, outBuffer, dmaCounter, MIXED_AUDIO_BUFFER_SIZE);
+    MixGBChannels(outBuffer, mixer->sampleRate, samplesPerFrame);
 }
 
 

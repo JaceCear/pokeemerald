@@ -9,6 +9,8 @@
 
 typedef void (*MixerRamFunc)(struct SoundMixerState *, u32, u16, s8 *, u16);
 
+typedef float AudioSample;
+
 struct MixerSource {
     u8 status;
     u8 type;
@@ -109,7 +111,7 @@ struct SoundMixerState {
     void *reversed4;
     void *reserved5;
     struct MixerSource chans[MAX_SAMPLE_CHANNELS];
-    __attribute__((aligned(4))) float outBuffer[MIXED_AUDIO_BUFFER_SIZE * 2];
+    __attribute__((aligned(4))) AudioSample outBuffer[MIXED_AUDIO_BUFFER_SIZE * 2];
     //s8 outBuffer[MIXED_AUDIO_BUFFER_SIZE * 2];
 };
 
