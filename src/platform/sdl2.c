@@ -1799,7 +1799,7 @@ static void UpdateInternalClock(void)
     struct tm *time = localtime(&rawTime);
 
     internalClock.year = BinToBcd(time->tm_year - 100);
-    internalClock.month = BinToBcd(time->tm_mon) + 1;
+    internalClock.month = BinToBcd(time->tm_mon + 1);
     internalClock.day = BinToBcd(time->tm_mday);
     internalClock.dayOfWeek = BinToBcd(time->tm_wday);
     internalClock.hour = BinToBcd(time->tm_hour);
